@@ -278,7 +278,7 @@ class _RenderSparkBarChart extends RenderSparkChart {
     final double xInterval = dataPoints!.length > 1
         ? dataPoints![1].x.toDouble() - dataPoints![0].x.toDouble()
         : dataPoints!.length.toDouble();
-    const double columnSpace = 0.5; // Default space for column and winloss
+    const double columnSpace = 4; // TODO : (change bar with & space from here) Default space for column and winloss  : 
     const double space = columnSpace * 2;
     final double? axisBaseValue = minY! < 0 ? minY : 0;
     double visibleXPoint;
@@ -295,24 +295,20 @@ class _RenderSparkBarChart extends RenderSparkChart {
     for (int i = 0; i < dataPoints!.length; i++) {
       x = dataPoints![i].x.toDouble();
       y = dataPoints![i].y.toDouble();
-      visibleXPoint =
-          (((x - minX!) / xInterval) * (columnWidth + space)) + (space / 2);
+      visibleXPoint = (((x - minX!) / xInterval) * (columnWidth + space)) + (space / 2);
       columnHeight = (areaSize!.height / diffY!) * (y - axisBaseValue);
       currentColumnHeight = (y == axisBaseValue && y > axisCrossesAt)
           ? ((dataPoints!.length != 1 && diffY != 1)
                   ? (areaSize!.height / diffY!) * axisBaseValue
                   : (columnHeight.toInt() | 1))
               .toDouble()
-          : (y == maxY &&
-                  y < axisCrossesAt &&
-                  dataPoints!.length != 1 &&
-                  diffY != 1)
+          : (y == maxY && y < axisCrossesAt && dataPoints!.length != 1 && diffY != 1)
               ? (areaSize!.height / diffY!) * maxY!
               : columnHeight;
       y2 = (areaSize!.height - currentColumnHeight).abs();
       top = (y2 > axisHeight!) ? axisHeight! : y2;
-      rect = Rect.fromLTRB(visibleXPoint, top, visibleXPoint + columnWidth,
-          top + (y2 - axisHeight!).abs());
+      rect = Rect.fromLTRB(
+          visibleXPoint, top, visibleXPoint + columnWidth, top + (y2 - axisHeight!).abs());
       _segments!.add(rect);
       yPoint = y >= axisCrossesAt ? rect.top : rect.bottom;
       coordinatePoints!.add(Offset(visibleXPoint + columnWidth / 2, yPoint));
@@ -324,8 +320,7 @@ class _RenderSparkBarChart extends RenderSparkChart {
   double getAxisHeight() {
     final double value = axisCrossesAt;
     final double minimumColumnValue = minY! < 0 ? minY! : 0;
-    double? axisLineHeight =
-        areaSize!.height - ((areaSize!.height / diffY!) * (-minY!));
+    double? axisLineHeight = areaSize!.height - ((areaSize!.height / diffY!) * (-minY!));
     axisLineHeight = (minY! < 0 && maxY! <= 0)
         ? 0
         : (minY! < 0 && maxY! > 0)
@@ -333,8 +328,7 @@ class _RenderSparkBarChart extends RenderSparkChart {
             : areaSize!.height;
     if (value >= minimumColumnValue && value <= maxY!) {
       axisLineHeight = areaSize!.height -
-          (areaSize!.height * ((value - minimumColumnValue) / diffY!))
-              .roundToDouble();
+          (areaSize!.height * ((value - minimumColumnValue) / diffY!)).roundToDouble();
     }
     return axisLineHeight!;
   }
@@ -343,10 +337,8 @@ class _RenderSparkBarChart extends RenderSparkChart {
   @override
   void calculatePlotBandPosition() {
     final double height = areaSize!.height;
-    final double start =
-        (plotBand!.start ?? minY!) < minY! ? minY! : (plotBand!.start ?? minY!);
-    final double end =
-        (plotBand!.end ?? maxY!) > maxY! ? maxY! : (plotBand!.end ?? maxY!);
+    final double start = (plotBand!.start ?? minY!) < minY! ? minY! : (plotBand!.start ?? minY!);
+    final double end = (plotBand!.end ?? maxY!) > maxY! ? maxY! : (plotBand!.end ?? maxY!);
     final double baseValue = minY! < 0 ? minY! : 0;
     plotBandStartHeight = height - ((height / diffY!) * (start - baseValue));
     plotBandEndHeight = height - ((height / diffY!) * (end - baseValue));
@@ -378,11 +370,8 @@ class _RenderSparkBarChart extends RenderSparkChart {
       if (_lowPoint > coordinatePoints![i].dy) {
         _lowPoint = coordinatePoints![i].dy;
       }
-      rect = Rect.fromLTRB(
-          _segments![i].left + offset.dx,
-          _segments![i].top + offset.dy,
-          _segments![i].right + offset.dx,
-          _segments![i].bottom + offset.dy);
+      rect = Rect.fromLTRB(_segments![i].left + offset.dx, _segments![i].top + offset.dy,
+          _segments![i].right + offset.dx, _segments![i].bottom + offset.dy);
       if (dataPoints![i].y == maxY && highPointColor != null) {
         currentColor = highPointColor!;
       } else if (dataPoints![i].y == minY && lowPointColor != null) {
@@ -391,38 +380,35 @@ class _RenderSparkBarChart extends RenderSparkChart {
         currentColor = firstPointColor!;
       } else if (i == _segments!.length - 1 && lastPointColor != null) {
         currentColor = lastPointColor!;
-      } else if (dataPoints![i].y < axisCrossesAt &&
-          negativePointColor != null) {
+      } else if (dataPoints![i].y < axisCrossesAt && negativePointColor != null) {
         currentColor = negativePointColor!;
       } else {
         currentColor = color!;
       }
+
       dataPoints![i].color = currentColor;
       paint = Paint()..color = currentColor;
-      canvas.drawRect(rect, paint);
+      //canvas.drawRect(rect, paint);
+      canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(30.0)), paint); // TODO : (change border radius)
       if (canDrawBorder) {
         canvas.drawRect(rect, strokePaint);
       }
 
-      if (labelDisplayMode != SparkChartLabelDisplayMode.none &&
-          labelStyle != null) {
+      if (labelDisplayMode != SparkChartLabelDisplayMode.none && labelStyle != null) {
         size = getTextSize(dataLabels![i], labelStyle!);
         yPosition = dataPoints![i].y > 0
             ? ((_segments![i].topCenter.dy + offset.dy) - size.height)
             : (_segments![i].bottomCenter.dy + offset.dy);
-        dataPoints![i].dataLabelOffset = Offset(
-            (offset.dx + _segments![i].topCenter.dx) - size.width / 2,
-            yPosition);
+        dataPoints![i].dataLabelOffset =
+            Offset((offset.dx + _segments![i].topCenter.dx) - size.width / 2, yPosition);
 
         if (dataPoints![i].dataLabelOffset!.dy <= offset.dy) {
-          dataPoints![i].dataLabelOffset = Offset(
-              dataPoints![i].dataLabelOffset!.dx, offset.dy + size.height);
+          dataPoints![i].dataLabelOffset =
+              Offset(dataPoints![i].dataLabelOffset!.dx, offset.dy + size.height);
         }
-        if (dataPoints![i].dataLabelOffset!.dy >=
-            offset.dy + areaSize!.height) {
+        if (dataPoints![i].dataLabelOffset!.dy >= offset.dy + areaSize!.height) {
           dataPoints![i].dataLabelOffset = Offset(
-              dataPoints![i].dataLabelOffset!.dx,
-              (offset.dy + areaSize!.height) - size.height);
+              dataPoints![i].dataLabelOffset!.dx, (offset.dy + areaSize!.height) - size.height);
         }
       }
     }
@@ -436,8 +422,7 @@ class _RenderSparkBarChart extends RenderSparkChart {
         dataPoints != null &&
         dataPoints!.isNotEmpty) {
       _renderBarSeries(context.canvas, offset);
-      if (labelDisplayMode != null &&
-          labelDisplayMode != SparkChartLabelDisplayMode.none) {
+      if (labelDisplayMode != null && labelDisplayMode != SparkChartLabelDisplayMode.none) {
         renderDataLabel(
             context.canvas,
             dataLabels!,
